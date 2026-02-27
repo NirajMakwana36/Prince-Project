@@ -82,98 +82,96 @@ $categories = getAllCategories($conn);
     }
 </style>
 
-<div class="container animate__animated animate__fadeIn">
-    <div class="shop-layout">
-        <!-- Sidebar Filters -->
-        <aside class="filters-sidebar">
-            <div class="filter-card">
-                <div class="filter-title"><i class="fas fa-filter"></i> Categories</div>
-                <ul class="category-list">
-                    <li class="category-item">
-                        <a href="products.php" class="category-link <?php echo !$category_id ? 'active' : ''; ?>">
-                            <span>All Products</span>
-                            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
-                        </a>
-                    </li>
+<div class="container" style="margin-top: 40px;">
+    <div style="display: flex; gap: 40px;">
+        <!-- Filter Sidebar -->
+        <aside style="width: 240px; flex-shrink: 0;">
+            <div style="font-weight: 700; font-size: 16px; margin-bottom: 24px; text-transform: uppercase;">Filters</div>
+            
+            <div style="border: 1px solid var(--border); border-radius: 4px; padding: 20px; background: white;">
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 16px; text-transform: uppercase;">Categories</div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <a href="products.php" style="text-decoration: none; color: <?php echo !$category_id ? 'var(--primary)' : 'var(--text-muted)'; ?>; font-size: 14px; font-weight: <?php echo !$category_id ? '700' : '400'; ?>;">All Items</a>
                     <?php foreach ($categories as $cat): ?>
-                    <li class="category-item">
-                        <a href="products.php?category=<?php echo $cat['id']; ?>" class="category-link <?php echo $category_id == $cat['id'] ? 'active' : ''; ?>">
-                            <span><?php echo htmlspecialchars($cat['name']); ?></span>
-                            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
-                        </a>
-                    </li>
+                    <a href="products.php?category=<?php echo $cat['id']; ?>" style="text-decoration: none; color: <?php echo $category_id == $cat['id'] ? 'var(--primary)' : 'var(--text-muted)'; ?>; font-size: 14px; font-weight: <?php echo $category_id == $cat['id'] ? '700' : '400'; ?>;">
+                        <?php echo htmlspecialchars($cat['name']); ?>
+                    </a>
                     <?php endforeach; ?>
-                </ul>
-
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
-
-                <div class="filter-title"><i class="fas fa-gift"></i> Special Deals</div>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">Check our limited time offers and save big on your daily groceries.</p>
-                <a href="#" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%; font-size: 0.85rem;">View Offers</a>
+                </div>
+                
+                <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+                
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 16px; text-transform: uppercase;">Price</div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted);">
+                        <input type="checkbox" style="accent-color: var(--primary);"> Under ₹500
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted);">
+                        <input type="checkbox" style="accent-color: var(--primary);"> ₹500 to ₹1000
+                    </label>
+                </div>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <main>
-            <div class="shop-header">
-                <div>
-                    <h1 style="font-size: 2rem;"><?php echo $category_id ? $categories[array_search($category_id, array_column($categories, 'id'))]['name'] : 'Fresh Catalog'; ?></h1>
-                    <p style="color: var(--text-muted);">Showing <?php echo count($products); ?> of <?php echo $total_products; ?> products</p>
-                </div>
+        <main style="flex-grow: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+                <h1 style="font-size: 18px; font-weight: 700;"><?php echo $category_id ? $categories[array_search($category_id, array_column($categories, 'id'))]['name'] : 'Fresh Catalog'; ?> - <?php echo count($products); ?> items</h1>
                 
                 <form action="" method="GET" id="sortForm">
                     <?php if($category_id): ?><input type="hidden" name="category" value="<?php echo $category_id; ?>"><?php endif; ?>
-                    <?php if($search): ?><input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>"><?php endif; ?>
-                    <select name="sort" class="sort-select" onchange="this.form.submit()">
-                        <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>>Newest First</option>
+                    <select name="sort" onchange="this.form.submit()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; outline: none;">
+                        <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>>Sort by: Newest First</option>
                         <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Price: Low to High</option>
                         <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Price: High to Low</option>
-                        <option value="name" <?php echo $sort == 'name' ? 'selected' : ''; ?>>Name: A-Z</option>
                     </select>
                 </form>
             </div>
 
-            <?php if(empty($products)): ?>
-                <div style="text-align: center; padding: 5rem 0; border: 2px dashed var(--border); border-radius: 2rem;">
-                    <i class="fas fa-search" style="font-size: 4rem; color: var(--border); margin-bottom: 2rem;"></i>
-                    <h3 style="color: var(--text-muted);">No products found matching your criteria.</h3>
-                    <a href="products.php" class="btn btn-primary" style="margin-top: 1.5rem;">Browse All Products</a>
+            <?php if (empty($products)): ?>
+                <div style="text-align: center; padding: 100px 0;">
+                    <i class="fas fa-search" style="font-size: 48px; color: var(--border); margin-bottom: 20px;"></i>
+                    <h2 style="color: var(--text-muted);">No products found</h2>
+                    <p>Try adjusting your filters or search terms.</p>
                 </div>
             <?php else: ?>
-                <div class="grid-auto">
+                <div class="product-grid">
                     <?php foreach ($products as $product): ?>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <?php if ($product['image']): ?>
-                                <img src="../assets/images/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-                            <?php else: ?>
-                                <div style="height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9;">
-                                    <i class="fas fa-image" style="font-size: 3rem; color: #cbd5e1;"></i>
-                                </div>
-                            <?php endif; ?>
-                            <?php if ($product['discount'] > 0): ?>
-                                <span class="product-badge">-<?php echo $product['discount']; ?>%</span>
-                            <?php endif; ?>
+                    <div class="product-card" onclick="window.location.href='product-detail.php?id=<?php echo $product['id']; ?>'">
+                        <div class="product-image-wrap">
+                            <?php 
+                            $img_src = (strpos($product['image'], 'http') === 0) ? $product['image'] : '../assets/images/' . ($product['image'] ?: 'default.png');
+                            ?>
+                            <img src="<?php echo $img_src; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                            <button class="wishlist-btn <?php echo isLoggedIn() && isInWishlist($conn, $_SESSION['user_id'], $product['id']) ? 'active' : ''; ?>" 
+                                    onclick="event.stopPropagation(); toggleWishlist(<?php echo $product['id']; ?>, this)">
+                                <i class="<?php echo isLoggedIn() && isInWishlist($conn, $_SESSION['user_id'], $product['id']) ? 'fas' : 'far'; ?> fa-heart"></i>
+                            </button>
                         </div>
                         <div class="product-info">
-                            <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem;"><?php echo htmlspecialchars($product['category_name']); ?></div>
-                            <h3 class="product-name" style="font-weight: 700; height: 3rem; overflow: hidden;"><?php echo htmlspecialchars($product['name']); ?></h3>
-                            <div class="product-price">
-                                <span class="current-price" style="font-size: 1.35rem;"><?php echo formatCurrency(getDiscountedPrice($product['price'], $product['discount'])); ?></span>
-                                <?php if ($product['discount'] > 0): ?>
-                                    <span class="original-price"><?php echo formatCurrency($product['price']); ?></span>
-                                <?php endif; ?>
-                            </div>
+                            <div style="color: var(--primary-dark); font-weight: 800; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.4rem;"><?php echo htmlspecialchars($product['category_name']); ?></div>
+                            <div class="product-title"><?php echo htmlspecialchars($product['name']); ?></div>
                             
-                            <div style="margin-top: auto; display: flex; gap: 0.5rem;">
-                                <?php if (isLoggedIn() && isCustomer()): ?>
-                                    <button class="btn btn-primary" style="flex: 1;" onclick="addToCart(<?php echo $product['id']; ?>, 1)">
-                                        <i class="fas fa-shopping-basket"></i> Add
-                                    </button>
-                                <?php else: ?>
-                                    <a href="login.php" class="btn btn-secondary btn-block">Login to Shop</a>
+                            <?php $card_rating = getProductRating($conn, $product['id']); ?>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.75rem;">
+                                <div style="color: #fbbf24;">
+                                    <?php 
+                                    $stars = floor($card_rating['rating']);
+                                    for($i=1; $i<=5; $i++) echo '<i class="' . ($i<=$stars ? 'fas' : 'far') . ' fa-star"></i>';
+                                    ?>
+                                </div>
+                                <span style="color: var(--text-muted); font-weight: 600;">(<?php echo $card_rating['count']; ?>)</span>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0;">
+                                <span class="price-tag"><?php echo formatCurrency(getDiscountedPrice($product['price'], $product['discount'])); ?></span>
+                                <?php if ($product['discount'] > 0): ?>
+                                    <span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem;"><?php echo formatCurrency($product['price']); ?></span>
                                 <?php endif; ?>
                             </div>
+                            <button class="btn btn-primary" style="width: 100%; height: 40px; padding: 0; border-radius: 8px;" onclick="event.stopPropagation(); addToCart(<?php echo $product['id']; ?>, 1)">
+                                Add to Bag
+                            </button>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -181,7 +179,7 @@ $categories = getAllCategories($conn);
 
                 <!-- Pagination -->
                 <?php if($total_pages > 1): ?>
-                <div class="pagination">
+                <div class="pagination" style="margin-top: 60px;">
                     <?php for($i = 1; $i <= $total_pages; $i++): ?>
                         <a href="products.php?page=<?php echo $i; ?><?php echo $category_id ? '&category='.$category_id : ''; ?><?php echo $search ? '&search='.urlencode($search) : ''; ?><?php echo $sort ? '&sort='.$sort : ''; ?>" 
                            class="page-btn <?php echo $page == $i ? 'active' : ''; ?>">
@@ -194,5 +192,6 @@ $categories = getAllCategories($conn);
         </main>
     </div>
 </div>
+
 
 <?php include_once $_SERVER['DOCUMENT_ROOT'] . '/CoGroCart/includes/footer.php'; ?>

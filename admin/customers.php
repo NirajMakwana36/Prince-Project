@@ -13,11 +13,11 @@ $total_customers = $conn->query("SELECT COUNT(*) as count FROM users WHERE role 
 $total_pages = ceil($total_customers / $per_page);
 ?>
 
-<div class="animate__animated animate__fadeIn">
+<div class="">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
         <div>
             <h1 style="font-size: 2.5rem;">Customers</h1>
-            <p style="color: #64748b;">Manage and view your customer base.</p>
+            <p style="color: #64748b;">Manage and view your customer base. To manage staff roles, go to <a href="users.php" style="color: var(--primary); font-weight: 700;">User Rights</a>.</p>
         </div>
         <div class="stat-badge"><i class="fas fa-users"></i> <?php echo $total_customers; ?> Total Users</div>
     </div>

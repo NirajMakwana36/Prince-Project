@@ -44,7 +44,7 @@ if ($action == 'edit' && isset($_GET['id'])) {
 }
 ?>
 
-<div class="animate__animated animate__fadeIn">
+<div class="">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
         <div>
             <h1 style="font-size: 2.5rem;"><?php echo $action == 'list' ? 'Promo Coupons' : ($action == 'add' ? 'Create Coupon' : 'Edit Coupon'); ?></h1>

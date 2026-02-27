@@ -53,6 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
             // Clear cart
             $conn->query("DELETE FROM cart WHERE user_id = $user_id");
 
+            // Update user profile address for future orders
+            $update_user = $conn->prepare("UPDATE users SET address = ?, city = ?, postal_code = ?, phone = ? WHERE id = ?");
+            $update_user->bind_param("ssssi", $address, $city, $postal_code, $phone, $user_id);
+            $update_user->execute();
+
             $conn->commit();
             redirect(BASE_URL . 'customer/order-success.php?order_id=' . $order_id, 'Order placed successfully!', 'success');
         } catch (Exception $e) {
@@ -83,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
     }
 </style>
 
-<div class="container animate__animated animate__fadeIn">
+<div class="container">
     <div style="margin-top: 4rem; text-align: center;">
         <h1 style="font-size: 2.5rem;">Secure <span style="color: var(--primary);">Checkout</span></h1>
         <p style="color: var(--text-muted);">Almost there! Just a few more details to confirm your order.</p>

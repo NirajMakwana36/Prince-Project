@@ -42,7 +42,7 @@ $grand_total = $cart_total + $delivery_charge;
     }
 </style>
 
-<div class="container animate__animated animate__fadeIn">
+<div class="container">
     <div style="margin-top: 4rem;">
         <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Shopping <span style="color: var(--primary);">Cart</span></h1>
         <p style="color: var(--text-muted);">You have <?php echo count($cart_items); ?> items in your cart.</p>
@@ -61,7 +61,10 @@ $grand_total = $cart_total + $delivery_charge;
                 <div class="cart-items-list">
                     <?php foreach ($cart_items as $item): ?>
                     <div class="cart-item" id="cart-item-<?php echo $item['id']; ?>">
-                        <img src="../assets/images/<?php echo $item['image']; ?>" class="cart-item-img" onerror="this.src='https://via.placeholder.com/100'">
+                        <?php 
+                        $img_src = (strpos($item['image'], 'http') === 0) ? $item['image'] : '../assets/images/' . ($item['image'] ?: 'default.png');
+                        ?>
+                        <img src="<?php echo $img_src; ?>" class="cart-item-img" onerror="this.src='https://via.placeholder.com/100'">
                         <div class="cart-item-info">
                             <h3><?php echo htmlspecialchars($item['name']); ?></h3>
                             <p><?php echo formatCurrency(getDiscountedPrice($item['price'], $item['discount'])); ?> per unit</p>

@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="bg-blob" style="top: -200px; left: -200px;"></div>
     <div class="bg-blob" style="bottom: -200px; right: -200px; background: #3b82f6;"></div>
 
-    <div class="login-card animate__animated animate__zoomIn">
+    <div class="login-card">
         <div class="logo"><i class="fas fa-shopping-basket"></i> CoGroCart</div>
         
         <?php if($error): ?>

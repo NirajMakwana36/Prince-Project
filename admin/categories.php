@@ -41,7 +41,7 @@ if ($action == 'edit' && isset($_GET['id'])) {
 }
 ?>
 
-<div class="animate__animated animate__fadeIn">
+<div class="">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
         <div>
             <h1 style="font-size: 2.5rem;"><?php echo $action == 'list' ? 'Categories' : ($action == 'add' ? 'Add Category' : 'Edit Category'); ?></h1>
@@ -94,7 +94,10 @@ if ($action == 'edit' && isset($_GET['id'])) {
                 <tr>
                     <td style="padding-left: 2.5rem;">
                         <div style="display: flex; align-items: center; gap: 1rem;">
-                            <img src="../assets/images/<?php echo $c['image'] ?: 'default-cat.png'; ?>" style="width: 50px; height: 50px; border-radius: 1rem; object-fit: cover; background: #f1f5f9;">
+                            <?php 
+                            $img_src = (strpos($c['image'], 'http') === 0) ? $c['image'] : '../assets/images/' . ($c['image'] ?: 'default-cat.png');
+                            ?>
+                            <img src="<?php echo $img_src; ?>" style="width: 50px; height: 50px; border-radius: 1rem; object-fit: cover; background: #f1f5f9;">
                             <span style="font-weight: 700; font-size: 1.1rem;"><?php echo htmlspecialchars($c['name']); ?></span>
                         </div>
                     </td>

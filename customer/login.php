@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['user_role'] = $user['role'];
         
         if ($user['role'] === 'admin') redirect(BASE_URL . 'admin/index.php');
+        if ($user['role'] === 'delivery') redirect(BASE_URL . 'delivery/index.php');
         redirect(BASE_URL . 'customer/dashboard.php');
     } else {
         $error = 'Invalid email or password';

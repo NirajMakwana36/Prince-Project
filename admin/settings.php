@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<div class="animate__animated animate__fadeIn">
+<div class="">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
         <div>
             <h1 style="font-size: 2.5rem;">System Settings</h1>

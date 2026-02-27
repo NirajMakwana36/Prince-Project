@@ -18,6 +18,24 @@ $stmt->execute();
 $orders = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $tab = sanitize($_GET['tab'] ?? 'overview');
+
+// Handle Profile Update
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && $tab == 'profile') {
+    $name = sanitize($_POST['name']);
+    $phone = sanitize($_POST['phone']);
+    $address = sanitize($_POST['address']);
+    $city = sanitize($_POST['city']);
+    
+    $stmt = $conn->prepare("UPDATE users SET name = ?, phone = ?, address = ?, city = ? WHERE id = ?");
+    $stmt->bind_param("ssssi", $name, $phone, $address, $city, $user_id);
+    if ($stmt->execute()) {
+        $_SESSION['user_name'] = $name;
+        $_SESSION['message'] = "Profile updated successfully!";
+        $_SESSION['msg_type'] = "success";
+        header("Location: dashboard.php?tab=profile");
+        exit;
+    }
+}
 ?>
 
 <style>
@@ -52,21 +70,25 @@ $tab = sanitize($_GET['tab'] ?? 'overview');
     }
 </style>
 
-<div class="container animate__animated animate__fadeIn">
+<div class="container">
     <div class="dash-layout">
         <aside class="dash-sidebar">
             <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border);">
-                <div style="width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; margin: 0 auto 1rem;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; margin: 0 auto 1rem; box-shadow: var(--shadow-md);">
                     <?php echo strtoupper(substr($user['name'], 0, 1)); ?>
                 </div>
                 <h3 style="font-family: 'Outfit', sans-serif;"><?php echo htmlspecialchars($user['name']); ?></h3>
                 <p style="font-size: 0.85rem; color: var(--text-muted);"><?php echo htmlspecialchars($user['email']); ?></p>
+                <div style="margin-top: 1rem;"><span class="badge" style="background: var(--primary-light); color: var(--primary-dark);"><?php echo strtoupper($user['role']); ?></span></div>
             </div>
             
             <nav class="dash-menu">
                 <a href="?tab=overview" class="dash-link <?php echo $tab == 'overview' ? 'active' : ''; ?>"><i class="fas fa-grid-2"></i> Overview</a>
                 <a href="?tab=orders" class="dash-link <?php echo $tab == 'orders' ? 'active' : ''; ?>"><i class="fas fa-shopping-bag"></i> My Orders</a>
-                <a href="?tab=profile" class="dash-link <?php echo $tab == 'profile' ? 'active' : ''; ?>"><i class="fas fa-user-circle"></i> Profile</a>
+                <a href="?tab=profile" class="dash-link <?php echo $tab == 'profile' ? 'active' : ''; ?>"><i class="fas fa-user-circle"></i> Profile Settings</a>
+                <?php if(isAdmin()): ?>
+                <a href="<?php echo BASE_URL; ?>admin/index.php" class="dash-link" style="background: #f1f5f9; margin-top: 1rem;"><i class="fas fa-chart-pie"></i> Admin Panel</a>
+                <?php endif; ?>
                 <a href="logout.php" class="dash-link" style="color: #f87171; margin-top: 2rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </nav>
         </aside>
@@ -168,10 +190,14 @@ $tab = sanitize($_GET['tab'] ?? 'overview');
                             <label>Phone Number</label>
                             <input type="tel" name="phone" class="form-control" value="<?php echo htmlspecialchars($user['phone']); ?>" required>
                         </div>
-                        <div class="form-group">
-                            <label>Default Address</label>
-                            <textarea name="address" class="form-control" rows="3"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
-                        </div>
+                            <div class="form-group">
+                                <label>Direct Address</label>
+                                <textarea name="address" class="form-control" rows="3" placeholder="Apartment, Street, Area"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" name="city" class="form-control" value="<?php echo htmlspecialchars($user['city'] ?? ''); ?>" placeholder="Enter your city">
+                            </div>
                         
                         <button type="submit" class="btn btn-primary" style="margin-top: 1rem; width: auto; padding: 1rem 2.5rem;">Save Changes</button>
                     </form>

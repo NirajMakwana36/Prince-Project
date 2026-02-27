@@ -42,164 +42,160 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delivery Partner Login - GroCart</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Partner Gateway - CoGroCart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <style>
-        body {
-            background: linear-gradient(135deg, #ff9f43 0%, #ff7b54 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        body { background: #0f172a; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; margin: 0; }
+        
+        .bg-blob { position: absolute; width: 600px; height: 600px; background: #fbbf24; filter: blur(180px); opacity: 0.1; border-radius: 50%; z-index: 1; }
+        
+        .login-card { 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(25px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            padding: 4.5rem; 
+            border-radius: 3.5rem; 
+            width: 100%; 
+            max-width: 480px; 
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.6); 
+            position: relative; 
+            z-index: 10; 
         }
 
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            max-width: 400px;
-            width: 100%;
+        .partner-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 10px; 
+            background: rgba(251, 191, 36, 0.1); 
+            color: #fbbf24; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 2rem; 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            margin-bottom: 2.5rem; 
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .login-logo {
-            font-size: 40px;
-            color: #ff9f43;
-            margin-bottom: 10px;
-        }
-
-        .login-header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-        }
-
-        .login-header p {
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-bottom: 0;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #ff9f43;
-            box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.1);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #ff9f43;
-            color: white;
-            border: none;
-            border-radius: 8px;
+        .logo { font-family: 'Outfit'; font-size: 2.5rem; margin-bottom: 1rem; color: white; }
+        .logo i { color: #fbbf24; margin-right: 0.5rem; }
+        
+        h2 { color: white; font-size: 2rem; margin-bottom: 3rem; font-family: 'Outfit'; }
+        
+        .form-group { margin-bottom: 2rem; }
+        .form-group label { display: block; color: #94a3b8; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        
+        .form-control { 
+            background: rgba(255,255,255,0.05) !important; 
+            border: 1px solid rgba(255,255,255,0.1) !important; 
+            color: white !important; 
+            height: 60px; 
+            border-radius: 1.25rem !important; 
+            padding: 0 1.5rem !important;
             font-size: 1rem;
-            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus { 
+            border-color: #fbbf24 !important; 
+            background: rgba(255,255,255,0.08) !important; 
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.1) !important; 
+        }
+
+        .btn-partner { 
+            background: #fbbf24; 
+            color: #111; 
+            height: 65px; 
+            border-radius: 1.5rem; 
+            font-weight: 800; 
+            font-size: 1.1rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 0.75rem; 
+            transition: all 0.3s; 
+            border: none;
+            width: 100%;
             cursor: pointer;
-            transition: all 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.4);
+        }
+        
+        .btn-partner:hover { 
+            transform: translateY(-3px); 
+            background: #f59e0b; 
+            box-shadow: 0 15px 35px -8px rgba(251, 191, 36, 0.5); 
         }
 
-        .login-btn:hover {
-            background-color: #ff8830;
-            box-shadow: 0 4px 12px rgba(255, 159, 67, 0.3);
+        .alert-error { 
+            background: rgba(239, 68, 68, 0.1); 
+            border: 1px solid rgba(239, 68, 68, 0.2); 
+            color: #fca5a5; 
+            padding: 1.25rem; 
+            border-radius: 1.25rem; 
+            margin-bottom: 2rem; 
+            font-size: 0.9rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
         }
 
-        .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
+        .back-link { 
+            display: block; 
+            text-align: center; 
+            margin-top: 2.5rem; 
+            color: #64748b; 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            transition: 0.3s;
         }
-
-        .info-box {
-            background-color: #d1ecf1;
-            border-left: 4px solid #0c5460;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 20px;
-            font-size: 13px;
-        }
-
-        .info-box p {
-            margin-bottom: 5px;
-            color: #0c5460;
-            word-break: break-all;
-        }
+        .back-link:hover { color: white; }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <div class="login-header">
-            <div class="login-logo">
-                <i class="fas fa-motorcycle"></i>
-            </div>
-            <h1>Delivery Partner</h1>
-            <p>GroCart Delivery Platform</p>
+    <div class="bg-blob" style="top: -200px; left: -200px;"></div>
+    <div class="bg-blob" style="bottom: -200px; right: -200px; background: #3b82f6; opacity: 0.05;"></div>
+
+    <div class="login-card">
+        <div class="partner-badge">
+            <i class="fas fa-shipping-fast"></i>
+            Logistic Network
         </div>
+        
+        <div class="logo"><i class="fas fa-shopping-basket"></i> CoGroCart</div>
+        <h2>Partner Login</h2>
 
         <?php if ($error): ?>
-        <div class="error-message">
-            <i class="fas fa-exclamation-circle"></i>
-            <span><?php echo htmlspecialchars($error); ?></span>
-        </div>
+            <div class="alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span><?php echo $error; ?></span>
+            </div>
         <?php endif; ?>
 
-        <form method="POST" action="">
+        <form method="POST">
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="your@email.com" required />
+                <label>Credentials</label>
+                <input type="email" name="email" class="form-control" placeholder="partner@cogrocart.com" required autocomplete="email">
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter password" required />
+                <label>Security Key</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="login-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                Login
+            <button type="submit" class="btn-partner">
+                Access Dashboard <i class="fas fa-lock-open"></i>
             </button>
         </form>
 
-        <div class="info-box">
-            <p><strong>Note:</strong> This is the delivery partner login portal.</p>
-            <p>Contact admin to register as a delivery partner.</p>
-        </div>
-
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="<?php echo BASE_URL; ?>" style="color: #ff9f43; text-decoration: none; font-size: 14px;">
-                <i class="fas fa-arrow-left"></i>
-                Back to Store
-            </a>
-        </div>
+        <a href="<?php echo BASE_URL; ?>" class="back-link">
+            <i class="fas fa-arrow-left"></i> Return to Site
+        </a>
     </div>
 </body>
 </html>

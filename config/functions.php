@@ -46,7 +46,7 @@ function fetchAll($stmt) {
 
 // Get product by ID
 function getProduct($conn, $id) {
-    $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt = $conn->prepare("SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     return fetchOne($stmt);
@@ -253,5 +253,92 @@ function getFlashMessage() {
         return ['message' => $message, 'type' => $type];
     }
     return null;
+}
+
+// Time Elapsed String
+function time_elapsed_string($datetime, $full = false) {
+    if ($datetime == '0000-00-00 00:00:00' || $datetime == null) return "Never";
+    $now = new DateTime;
+    $ago = new DateTime($datetime);
+    $diff = $now->diff($ago);
+
+    $diff->w = floor($diff->d / 7);
+    $diff->d -= $diff->w * 7;
+
+    $string = array(
+        'y' => 'year',
+        'm' => 'month',
+        'w' => 'week',
+        'd' => 'day',
+        'h' => 'hour',
+        'i' => 'minute',
+        's' => 'second',
+    );
+    foreach ($string as $k => &$v) {
+        if ($diff->$k) {
+            $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+        } else {
+            unset($string[$k]);
+        }
+    }
+
+    if (!$full) $string = array_slice($string, 0, 1);
+    return $string ? implode(', ', $string) . ' ago' : 'just now';
+}
+// Get product rating summary
+function getProductRating($conn, $product_id) {
+    $stmt = $conn->prepare("SELECT AVG(rating) as avg_rating, COUNT(*) as count FROM reviews WHERE product_id = ?");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $res = fetchOne($stmt);
+    return [
+        'rating' => round($res['avg_rating'] ?? 0, 1),
+        'count' => $res['count'] ?? 0
+    ];
+}
+function getProductReviews($conn, $product_id) {
+    $stmt = $conn->prepare("
+        SELECT r.*, u.name as user_name 
+        FROM reviews r 
+        JOIN users u ON r.user_id = u.id 
+        WHERE r.product_id = ? 
+        ORDER BY r.created_at DESC
+    ");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    return fetchAll($stmt);
+}
+
+// Check if user has purchased product (to allow review)
+function hasPurchasedProduct($conn, $user_id, $product_id) {
+    $stmt = $conn->prepare("
+        SELECT oi.id 
+        FROM order_items oi 
+        JOIN orders o ON oi.order_id = o.id 
+        WHERE o.user_id = ? AND oi.product_id = ? AND o.status = 'delivered'
+        LIMIT 1
+    ");
+    $stmt->bind_param("ii", $user_id, $product_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0;
+}
+
+// Wishlist check
+function isInWishlist($conn, $user_id, $product_id) {
+    $stmt = $conn->prepare("SELECT id FROM wishlist WHERE user_id = ? AND product_id = ?");
+    $stmt->bind_param("ii", $user_id, $product_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0;
+}
+
+// Get wishlist count
+function getWishlistCount($conn, $user_id) {
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM wishlist WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = fetchOne($stmt);
+    return $res ? $res['count'] : 0;
 }
 ?>

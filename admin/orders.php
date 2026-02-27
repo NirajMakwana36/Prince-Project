@@ -21,16 +21,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['assign_delivery'])) {
 }
 
 $view_id = intval($_GET['view'] ?? 0);
-$orders = $conn->query("SELECT o.*, u.name as customer FROM orders o JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC")->fetch_all(MYSQLI_ASSOC);
+$status_filter = $_GET['status'] ?? '';
+
+$sql = "SELECT o.*, u.name as customer FROM orders o JOIN users u ON o.user_id = u.id";
+if ($status_filter) {
+    $sql .= " WHERE o.status = '" . $conn->real_escape_string($status_filter) . "'";
+}
+$sql .= " ORDER BY o.created_at DESC";
+$orders = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
 
 if ($view_id > 0) {
     $order = getOrder($conn, $view_id);
     $items = getOrderItems($conn, $view_id);
-    $partners = $conn->query("SELECT u.id, u.name FROM users u JOIN delivery_partners dp ON u.id = dp.user_id WHERE dp.status = 'available' OR dp.status = 'offline'")->fetch_all(MYSQLI_ASSOC);
+    $partners = $conn->query("SELECT id, name FROM users WHERE role = 'delivery'")->fetch_all(MYSQLI_ASSOC);
 }
 ?>
 
-<div class="animate__animated animate__fadeIn">
+<div class="">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
         <div>
             <h1 style="font-size: 2.5rem;"><?php echo $view_id ? 'Order Details' : 'Orders'; ?></h1>
@@ -41,8 +48,26 @@ if ($view_id > 0) {
         <?php endif; ?>
     </div>
 
+    <?php if(!$view_id): ?>
+    <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 1rem;">
+        <a href="orders.php" class="badge" style="background: <?php echo !$status_filter ? 'var(--primary)' : '#fff'; ?>; color: <?php echo !$status_filter ? '#111' : '#64748b'; ?>; text-decoration: none; border: 1px solid var(--border);">All Orders</a>
+        <?php 
+        $all_statuses = ['pending', 'accepted', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'];
+        foreach($all_statuses as $s):
+            $isActive = $status_filter == $s;
+        ?>
+            <a href="?status=<?php echo $s; ?>" class="badge" style="background: <?php echo $isActive ? 'var(--secondary)' : '#fff'; ?>; color: <?php echo $isActive ? '#fff' : '#64748b'; ?>; text-decoration: none; border: 1px solid var(--border);">
+                <?php echo ucfirst(str_replace('_', ' ', $s)); ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
     <?php if($view_id && $order): ?>
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2.5rem;">
+        <?php 
+        // Fetch all delivery partners
+        $partners = $conn->query("SELECT id, name FROM users WHERE role = 'delivery'")->fetch_all(MYSQLI_ASSOC);
+        ?>
         <div>
             <div class="admin-card">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 1.5rem;">
@@ -80,7 +105,10 @@ if ($view_id > 0) {
                         <tr>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 1rem;">
-                                    <img src="../assets/images/<?php echo $item['image'] ?: 'default.png'; ?>" style="width: 40px; height: 40px; border-radius: 0.75rem; object-fit: cover;">
+                                    <?php 
+                                    $img_src = (strpos($item['image'], 'http') === 0) ? $item['image'] : '../assets/images/' . ($item['image'] ?: 'default.png');
+                                    ?>
+                                    <img src="<?php echo $img_src; ?>" style="width: 40px; height: 40px; border-radius: 0.75rem; object-fit: cover;">
                                     <span style="font-weight: 600;"><?php echo htmlspecialchars($item['name']); ?></span>
                                 </div>
                             </td>
@@ -160,6 +188,16 @@ if ($view_id > 0) {
     </div>
     <?php else: ?>
     <div class="admin-card" style="padding: 0;">
+        <?php 
+        $status_colors = [
+            'pending' => ['#fef3c7', '#d97706'],
+            'accepted' => ['#e0e7ff', '#4f46e5'],
+            'preparing' => ['#fae8ff', '#d946ef'],
+            'out_for_delivery' => ['#dcfce7', '#16a34a'],
+            'delivered' => ['#d1fae5', '#059669'],
+            'cancelled' => ['#fee2e2', '#dc2626']
+        ];
+        ?>
         <table class="admin-table">
             <thead>
                 <tr>

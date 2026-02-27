@@ -24,6 +24,9 @@ if (empty($action)) {
 }
 
 switch ($action) {
+    case 'count':
+        echo json_encode(['status' => 'success', 'count' => getCartCount($conn, $user_id)]);
+        exit;
     case 'add':
         $product_id = intval($_POST['product_id'] ?? $json['product_id'] ?? 0);
         $quantity = intval($_POST['quantity'] ?? $json['quantity'] ?? 1);
