@@ -17,9 +17,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
     $status = sanitize($_POST['status']);
     
     // Validate that order belongs to this partner
-    $check = $conn->query("SELECT id FROM orders WHERE id = $order_id AND delivery_partner_id = $user_id");
+    $check = $conn->query("SELECT id, user_id FROM orders WHERE id = $order_id AND delivery_partner_id = $user_id");
     if ($check->num_rows > 0) {
+        $order_data = $check->fetch_assoc();
         $conn->query("UPDATE orders SET status = '$status' WHERE id = $order_id");
+        
+        // Notify Customer
+        $cust_id = $order_data['user_id'];
+        $clean_status = ucfirst(str_replace('_', ' ', $status));
+        $cust_msg = "Your order #" . str_pad($order_id, 5, '0', STR_PAD_LEFT) . " status is now: " . $clean_status;
+        $conn->query("INSERT INTO notifications (user_id, role, title, message, link) VALUES ($cust_id, 'customer', 'Order Update', '$cust_msg', 'order-track.php?order_id=$order_id')");
+        
+        // Notify Admin
+        $admin_msg = "Order #" . str_pad($order_id, 5, '0', STR_PAD_LEFT) . " status updated to $clean_status by delivery partner.";
+        $conn->query("INSERT INTO notifications (role, title, message, link) VALUES ('admin', 'Delivery Update', '$admin_msg', 'orders.php?view=$order_id')");
+
         $msg = "Order status updated to " . str_replace('_', ' ', $status);
         redirect("index.php", $msg, "success");
     }
@@ -29,9 +41,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['accept_order'])) {
     $order_id = intval($_POST['order_id']);
     // Ensure order is still available
-    $check = $conn->query("SELECT id FROM orders WHERE id = $order_id AND (delivery_partner_id IS NULL OR delivery_partner_id = 0)");
+    $check = $conn->query("SELECT id, user_id FROM orders WHERE id = $order_id AND (delivery_partner_id IS NULL OR delivery_partner_id = 0)");
     if ($check->num_rows > 0) {
+        $order_data = $check->fetch_assoc();
         $conn->query("UPDATE orders SET delivery_partner_id = $user_id, status = 'accepted' WHERE id = $order_id");
+        
+        // Notify Customer
+        $cust_id = $order_data['user_id'];
+        $cust_msg = "Your order #" . str_pad($order_id, 5, '0', STR_PAD_LEFT) . " has been accepted by a delivery partner and is being processed.";
+        $conn->query("INSERT INTO notifications (user_id, role, title, message, link) VALUES ($cust_id, 'customer', 'Order Accepted', '$cust_msg', 'order-track.php?order_id=$order_id')");
+
         redirect("index.php", "Order accepted successfully!", "success");
     }
 }
@@ -107,8 +126,18 @@ $delivered_count = $conn->query("SELECT COUNT(*) as count FROM orders WHERE deli
     <nav class="ops-nav">
         <div class="ops-logo"><i class="fas fa-shopping-basket"></i> CoGroCart <span>Partner</span></div>
         <div style="display: flex; align-items: center; gap: 2rem;">
+            <?php 
+                $uid = $_SESSION['user_id'];
+                $unread = $conn->query("SELECT COUNT(*) as c FROM notifications WHERE role = 'delivery' AND user_id = $uid AND is_read = 0")->fetch_assoc()['c'] ?? 0;
+            ?>
+            <a href="notifications.php" style="color: var(--s); font-size: 1.5rem; position: relative;">
+                <i class="fas fa-bell"></i>
+                <?php if($unread > 0): ?>
+                    <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid white;"><?php echo $unread; ?></span>
+                <?php endif; ?>
+            </a>
             <div style="text-align: right;">
-                <div style="font-weight: 800;"><?php echo $_SESSION['user_name']; ?></div>
+                <div style="font-weight: 800;"><?php echo htmlspecialchars($_SESSION['user_name']); ?></div>
                 <div style="font-size: 0.75rem; color: #94a3b8;">Active Session</div>
             </div>
             <a href="logout.php" style="color: #f87171; font-size: 1.5rem;"><i class="fas fa-power-off"></i></a>
@@ -237,5 +266,39 @@ $delivered_count = $conn->query("SELECT COUNT(*) as count FROM orders WHERE deli
             setTimeout(() => { document.querySelector('.toast').style.display = 'none'; }, 4000);
         </script>
     <?php endif; ?>
+
+    <script>
+        // Real-time Delivery Ops Polling
+        let lastOrderTime = '<?php 
+            $oq = "SELECT MAX(updated_at) as t FROM orders WHERE (delivery_partner_id = $user_id) OR (delivery_partner_id IS NULL OR delivery_partner_id = 0)";
+            $nq = "SELECT MAX(created_at) as t FROM notifications WHERE role = 'delivery' AND user_id = $user_id";
+            $ot = $conn->query($oq)->fetch_assoc()["t"] ?? '2000-01-01 00:00:00'; 
+            $nt = $conn->query($nq)->fetch_assoc()["t"] ?? '2000-01-01 00:00:00'; 
+            echo max($ot, $nt) == '2000-01-01 00:00:00' ? date("Y-m-d H:i:s") : max($ot, $nt);
+        ?>';
+        
+        setInterval(() => {
+            fetch('<?php echo BASE_URL; ?>api/check_updates.php?last_time=' + encodeURIComponent(lastOrderTime))
+            .then(r => r.json())
+            .then(data => {
+                if (data.has_updates) {
+                    lastOrderTime = data.last_time;
+                    // Silently fetch the updated page and replace the content area
+                    fetch(location.href)
+                    .then(res => res.text())
+                    .then(html => {
+                        let parser = new DOMParser();
+                        let doc = parser.parseFromString(html, 'text/html');
+                        
+                        let newContent = doc.querySelector('.ops-container').innerHTML;
+                        if(newContent) document.querySelector('.ops-container').innerHTML = newContent;
+
+                        let newNav = doc.querySelector('.ops-nav').innerHTML;
+                        if(newNav) document.querySelector('.ops-nav').innerHTML = newNav;
+                    }).catch(err => console.error(err));
+                }
+            }).catch(e => console.error("Real-time ops error:", e));
+        }, 5000);
+    </script>
 </body>
 </html>

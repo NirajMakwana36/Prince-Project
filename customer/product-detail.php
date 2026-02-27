@@ -99,21 +99,31 @@ $rating_info = getProductRating($conn, $product_id);
                 </div>
                 <div style="margin-left: auto; text-align: right;">
                     <span style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Inclusive of all taxes</span>
-                    <span style="font-weight: 700; color: var(--success);"><i class="fas fa-check-circle"></i> In Stock</span>
+                    <?php if ($product['stock'] > 0 && $product['is_available']): ?>
+                        <span style="font-weight: 700; color: var(--success);"><i class="fas fa-check-circle"></i> In Stock (<?php echo $product['stock']; ?>)</span>
+                    <?php else: ?>
+                        <span style="font-weight: 700; color: #ef4444;"><i class="fas fa-times-circle"></i> Out of Stock</span>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <div class="qty-selector">
                 <span style="font-weight: 700; color: var(--secondary);">Quantity:</span>
-                <button class="qty-btn" onclick="updateQty(-1)"><i class="fas fa-minus"></i></button>
+                <button class="qty-btn" onclick="updateQty(-1)" <?php echo ($product['stock'] <= 0 || !$product['is_available']) ? 'disabled' : ''; ?>><i class="fas fa-minus"></i></button>
                 <span id="qty">1</span>
-                <button class="qty-btn" onclick="updateQty(1)"><i class="fas fa-plus"></i></button>
+                <button class="qty-btn" onclick="updateQty(1)" <?php echo ($product['stock'] <= 0 || !$product['is_available']) ? 'disabled' : ''; ?>><i class="fas fa-plus"></i></button>
             </div>
 
             <div style="display: flex; gap: 1.5rem;">
-                <button onclick="addToCart(<?php echo $product['id']; ?>, parseInt(document.getElementById('qty').innerText))" class="btn btn-primary" style="flex: 2; height: 65px; font-size: 1.1rem;">
-                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                </button>
+                <?php if ($product['stock'] > 0 && $product['is_available']): ?>
+                    <button onclick="addToCart(<?php echo $product['id']; ?>, parseInt(document.getElementById('qty').innerText))" class="btn btn-primary" style="flex: 2; height: 65px; font-size: 1.1rem;">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                <?php else: ?>
+                    <button class="btn btn-primary" style="flex: 2; height: 65px; font-size: 1.1rem; opacity: 0.5; cursor: not-allowed;" disabled>
+                        <i class="fas fa-ban"></i> Out of Stock
+                    </button>
+                <?php endif; ?>
                 <button id="wishlistBtn" onclick="toggleWishlist(<?php echo $product['id']; ?>)" class="btn btn-secondary" style="flex: 1; height: 65px;">
                     <i class="<?php echo isLoggedIn() && isInWishlist($conn, $_SESSION['user_id'], $product['id']) ? 'fas' : 'far'; ?> fa-heart"></i> Wishlist
                 </button>

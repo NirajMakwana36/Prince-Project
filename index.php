@@ -75,9 +75,15 @@ $store_open = isStoreOpen($conn);
                             <span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.9rem;"><?php echo formatCurrency($product['price']); ?></span>
                         <?php endif; ?>
                     </div>
-                    <button class="btn btn-primary" style="width: 100%; height: 45px; border-radius: 12px;" onclick="event.stopPropagation(); addToCart(<?php echo $product['id']; ?>, 1)">
-                        Add to Bag
-                    </button>
+                    <?php if ($product['stock'] > 0 && $product['is_available']): ?>
+                        <button class="btn btn-primary" style="width: 100%; height: 45px; border-radius: 12px;" onclick="event.stopPropagation(); addToCart(<?php echo $product['id']; ?>, 1)">
+                            Add to Bag
+                        </button>
+                    <?php else: ?>
+                        <button class="btn btn-primary" style="width: 100%; height: 45px; border-radius: 12px; opacity: 0.5; cursor: not-allowed; background: var(--border); color: var(--text-muted);" disabled onclick="event.stopPropagation();">
+                            Out of Stock
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php endforeach; ?>

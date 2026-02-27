@@ -52,6 +52,7 @@ if (!isAdmin()) {
                 <li class="side-item"><a href="products.php" class="side-link <?php echo basename($_SERVER['PHP_SELF']) == 'products.php' ? 'active' : ''; ?>"><i class="fas fa-box"></i> Inventory</a></li>
                 <li class="side-item"><a href="categories.php" class="side-link <?php echo basename($_SERVER['PHP_SELF']) == 'categories.php' ? 'active' : ''; ?>"><i class="fas fa-tags"></i> Categories</a></li>
                 <li class="side-item"><a href="orders.php" class="side-link <?php echo basename($_SERVER['PHP_SELF']) == 'orders.php' ? 'active' : ''; ?>"><i class="fas fa-receipt"></i> Orders</a></li>
+                <li class="side-item"><a href="notifications.php" class="side-link <?php echo basename($_SERVER['PHP_SELF']) == 'notifications.php' ? 'active' : ''; ?>"><i class="fas fa-bell"></i> Notifications</a></li>
                 <li class="side-item"><a href="customers.php" class="side-link <?php echo basename($_SERVER['PHP_SELF']) == 'customers.php' ? 'active' : ''; ?>"><i class="fas fa-users"></i> Customers</a></li>
                 <li class="side-item"><a href="users.php" class="side-link <?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>"><i class="fas fa-user-shield"></i> User Rights</a></li>
                 <li class="side-item"><a href="coupons.php" class="side-link <?php echo basename($_SERVER['PHP_SELF']) == 'coupons.php' ? 'active' : ''; ?>"><i class="fas fa-ticket-alt"></i> Promotions</a></li>

@@ -41,6 +41,10 @@ $cat_dist = $conn->query("
 ")->fetch_all(MYSQLI_ASSOC);
 ?>
 
+<?php
+$unread_notifs = $conn->query("SELECT COUNT(*) as c FROM notifications WHERE role = 'admin' AND is_read = 0")->fetch_assoc()['c'] ?? 0;
+?>
+
 <div class="admin-main-content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
         <div>
@@ -48,7 +52,12 @@ $cat_dist = $conn->query("
             <p style="color: #64748b;">Unified view of your store's performance and operations.</p>
         </div>
         <div style="display: flex; gap: 1rem;">
-            <button class="btn btn-secondary"><i class="fas fa-download"></i> Export Reports</button>
+            <a href="notifications.php" class="btn btn-secondary" style="position: relative;">
+                <i class="fas fa-bell"></i> Alerts
+                <?php if($unread_notifs > 0): ?>
+                    <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid white;"><?php echo $unread_notifs; ?></span>
+                <?php endif; ?>
+            </a>
             <a href="orders.php" class="btn btn-primary">Process Orders</a>
         </div>
     </div>

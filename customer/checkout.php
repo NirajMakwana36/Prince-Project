@@ -37,6 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
             $stmt->execute();
             $order_id = $conn->insert_id;
 
+            // Notify admins
+            $admin_msg = "New order #".str_pad($order_id, 5, '0', STR_PAD_LEFT)." received from ".$user['name'].".";
+            $conn->query("INSERT INTO notifications (role, title, message, link) VALUES ('admin', 'New Order Received', '$admin_msg', 'orders.php?view=$order_id')");
+
             // Add order items
             $item_stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
             foreach ($cart_items as $item) {

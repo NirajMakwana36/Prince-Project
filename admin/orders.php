@@ -9,6 +9,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
     $order_id = intval($_POST['order_id']);
     $status = sanitize($_POST['status']);
     $conn->query("UPDATE orders SET status = '$status' WHERE id = $order_id");
+    
+    // Notify Customer
+    $o = $conn->query("SELECT user_id FROM orders WHERE id = $order_id")->fetch_assoc();
+    if($o) {
+        $cust_id = $o['user_id'];
+        $clean_status = ucfirst(str_replace('_', ' ', $status));
+        $cust_msg = "Your order #" . str_pad($order_id, 5, '0', STR_PAD_LEFT) . " status is now: " . $clean_status;
+        $conn->query("INSERT INTO notifications (user_id, role, title, message, link) VALUES ($cust_id, 'customer', 'Order Update', '$cust_msg', 'order-track.php?order_id=$order_id')");
+    }
+
     echo "<script>location.href='orders.php?view=$order_id&msg=updated';</script>";
 }
 
@@ -17,6 +27,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['assign_delivery'])) {
     $order_id = intval($_POST['order_id']);
     $partner_id = intval($_POST['partner_id']);
     $conn->query("UPDATE orders SET delivery_partner_id = $partner_id, status='accepted' WHERE id = $order_id");
+    
+    // Notify Delivery Partner
+    $delv_msg = "You have been assigned to order #" . str_pad($order_id, 5, '0', STR_PAD_LEFT) . ".";
+    $conn->query("INSERT INTO notifications (user_id, role, title, message, link) VALUES ($partner_id, 'delivery', 'New Assignment', '$delv_msg', 'index.php')");
+    
+    // Notify Customer
+    $o = $conn->query("SELECT user_id FROM orders WHERE id = $order_id")->fetch_assoc();
+    if($o) {
+        $cust_id = $o['user_id'];
+        $cust_msg = "Your order #" . str_pad($order_id, 5, '0', STR_PAD_LEFT) . " has been accepted and assigned to a delivery partner.";
+        $conn->query("INSERT INTO notifications (user_id, role, title, message, link) VALUES ($cust_id, 'customer', 'Order Accepted', '$cust_msg', 'order-track.php?order_id=$order_id')");
+    }
+
     echo "<script>location.href='orders.php?view=$order_id&msg=assigned';</script>";
 }
 

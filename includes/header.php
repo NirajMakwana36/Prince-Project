@@ -217,6 +217,20 @@ include_once $_SERVER['DOCUMENT_ROOT'] . '/CoGroCart/config/functions.php';
                         <span class="item-big">& Orders</span>
                     </a>
 
+                    <?php 
+                    $unread_cust_notifs = 0;
+                    if(isLoggedIn()) {
+                        $uid = $_SESSION['user_id'];
+                        $unread_cust_notifs = $conn->query("SELECT COUNT(*) as c FROM notifications WHERE role = 'customer' AND user_id = $uid AND is_read = 0")->fetch_assoc()['c'] ?? 0;
+                    }
+                    ?>
+                    <a href="<?php echo BASE_URL; ?>customer/dashboard.php?tab=notifications" class="nav-item" style="position: relative;">
+                        <i class="far fa-bell" style="font-size: 1.25rem;"></i>
+                        <?php if($unread_cust_notifs > 0): ?>
+                            <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; width: 18px; height: 18px; border-radius: 50%; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid var(--primary-bg);"><?php echo $unread_cust_notifs; ?></span>
+                        <?php endif; ?>
+                    </a>
+
                     <a href="<?php echo BASE_URL; ?>customer/wishlist.php" class="nav-item">
                         <div class="cart-badge" id="wishlistBadge" style="background: #ef4444;">
                             <?php echo isLoggedIn() ? getWishlistCount($conn, $_SESSION['user_id']) : '0'; ?>

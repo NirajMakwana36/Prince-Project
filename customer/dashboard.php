@@ -83,8 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $tab == 'profile') {
             </div>
             
             <nav class="dash-menu">
-                <a href="?tab=overview" class="dash-link <?php echo $tab == 'overview' ? 'active' : ''; ?>"><i class="fas fa-grid-2"></i> Overview</a>
+                <a href="?tab=overview" class="dash-link <?php echo $tab == 'overview' ? 'active' : ''; ?>"><i class="fas fa-th-large"></i> Overview</a>
                 <a href="?tab=orders" class="dash-link <?php echo $tab == 'orders' ? 'active' : ''; ?>"><i class="fas fa-shopping-bag"></i> My Orders</a>
+                <a href="?tab=notifications" class="dash-link <?php echo $tab == 'notifications' ? 'active' : ''; ?>"><i class="fas fa-bell"></i> Notifications</a>
                 <a href="?tab=profile" class="dash-link <?php echo $tab == 'profile' ? 'active' : ''; ?>"><i class="fas fa-user-circle"></i> Profile Settings</a>
                 <?php if(isAdmin()): ?>
                 <a href="<?php echo BASE_URL; ?>admin/index.php" class="dash-link" style="background: #f1f5f9; margin-top: 1rem;"><i class="fas fa-chart-pie"></i> Admin Panel</a>
@@ -190,18 +191,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $tab == 'profile') {
                             <label>Phone Number</label>
                             <input type="tel" name="phone" class="form-control" value="<?php echo htmlspecialchars($user['phone']); ?>" required>
                         </div>
-                            <div class="form-group">
-                                <label>Direct Address</label>
-                                <textarea name="address" class="form-control" rows="3" placeholder="Apartment, Street, Area"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>City</label>
-                                <input type="text" name="city" class="form-control" value="<?php echo htmlspecialchars($user['city'] ?? ''); ?>" placeholder="Enter your city">
-                            </div>
+                        <div class="form-group">
+                            <label>Direct Address</label>
+                            <textarea name="address" class="form-control" rows="3" placeholder="Apartment, Street, Area"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" name="city" class="form-control" value="<?php echo htmlspecialchars($user['city'] ?? ''); ?>" placeholder="Enter your city">
+                        </div>
                         
                         <button type="submit" class="btn btn-primary" style="margin-top: 1rem; width: auto; padding: 1rem 2.5rem;">Save Changes</button>
                     </form>
                 </div>
+            
+            <?php elseif($tab == 'notifications'): ?>
+                <?php
+                // Mark as read
+                if (isset($_GET['mark_read'])) {
+                    $conn->query("UPDATE notifications SET is_read = 1 WHERE user_id = $user_id AND role = 'customer'");
+                    echo "<script>location.href='?tab=notifications';</script>";
+                }
+                $notifs = $conn->query("SELECT * FROM notifications WHERE user_id = $user_id AND role = 'customer' ORDER BY created_at DESC LIMIT 50")->fetch_all(MYSQLI_ASSOC);
+                ?>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                    <div>
+                        <h1 style="font-size: 2.25rem;">Order <span style="color: var(--primary);">Alerts</span></h1>
+                        <p style="color: var(--text-muted);">Updates regarding your purchases.</p>
+                    </div>
+                    <?php if(!empty($notifs)): ?>
+                    <a href="?tab=notifications&mark_read=1" class="btn btn-secondary">Mark All as Read</a>
+                    <?php endif; ?>
+                </div>
+
+                <?php if(empty($notifs)): ?>
+                    <div style="text-align: center; padding: 4rem; background: white; border-radius: 1.5rem; border: 1px solid var(--border);">
+                        <i class="far fa-bell" style="font-size: 3rem; margin-bottom: 1rem; color: var(--border);"></i>
+                        <h3 style="margin-bottom: 0.5rem;">No Notifications</h3>
+                        <p style="color: var(--text-muted);">You're all caught up on your order updates.</p>
+                    </div>
+                <?php else: ?>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <?php foreach($notifs as $n): ?>
+                            <a href="<?php echo BASE_URL; ?>api/read_notification.php?id=<?php echo $n['id']; ?>" style="text-decoration: none; display: flex; align-items: flex-start; gap: 1.5rem; padding: 1.5rem; border-radius: 1.5rem; border: 1px solid var(--border); background: <?php echo $n['is_read'] ? 'white' : '#fffbeb'; ?>; transition: var(--transition);">
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: <?php echo $n['is_read'] ? '#f1f5f9' : 'var(--primary-light)'; ?>; color: <?php echo $n['is_read'] ? '#64748b' : 'var(--primary-dark)'; ?>; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                        <h4 style="color: var(--secondary); margin: 0; font-size: 1.1rem; font-weight: <?php echo $n['is_read'] ? '600' : '800'; ?>;"><?php echo htmlspecialchars($n['title']); ?></h4>
+                                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><?php echo formatDate($n['created_at']); ?></span>
+                                    </div>
+                                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;"><?php echo htmlspecialchars($n['message']); ?></p>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </main>
     </div>

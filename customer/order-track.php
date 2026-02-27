@@ -121,4 +121,32 @@ if($current_step === false && $order['status'] == 'cancelled') $current_step = -
     </div>
 </div>
 
+<script>
+    // Real-time Order Tracking Polling
+    let lastOrderTime = '<?php echo $order["updated_at"] ?? date("Y-m-d H:i:s"); ?>';
+    const orderId = <?php echo $order_id; ?>;
+    
+    setInterval(() => {
+        fetch(`<?php echo BASE_URL; ?>api/check_updates.php?last_time=${encodeURIComponent(lastOrderTime)}&order_id=${orderId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.has_updates) {
+                lastOrderTime = data.last_time;
+                
+                // Silently fetch and update the DOM
+                fetch(location.href)
+                .then(res => res.text())
+                .then(html => {
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(html, 'text/html');
+                    let newContent = doc.querySelector('.track-wrapper').innerHTML;
+                    if(newContent) {
+                        document.querySelector('.track-wrapper').innerHTML = newContent;
+                    }
+                }).catch(err => console.error("DOM Refresh Error:", err));
+            }
+        }).catch(e => console.error("Tracking Polling error:", e));
+    }, 5000); // Check every 5 seconds
+</script>
+
 <?php include_once $_SERVER['DOCUMENT_ROOT'] . '/CoGroCart/includes/footer.php'; ?>

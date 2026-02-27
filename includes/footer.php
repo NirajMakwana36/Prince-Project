@@ -79,6 +79,46 @@
 
     <!-- Scripts -->
     <script src="<?php echo BASE_URL; ?>assets/js/script.js"></script>
+
+    <?php if(isLoggedIn() && (!isAdmin() && !isDeliveryPartner())): ?>
+    <script>
+        // Global Real-time Polling for Customer
+        let lastNotifTime = '<?php 
+            $q = "SELECT MAX(created_at) as t FROM notifications WHERE role = 'customer' AND user_id = " . $_SESSION['user_id'];
+            echo $conn->query($q)->fetch_assoc()["t"] ?? date("Y-m-d H:i:s"); 
+        ?>';
+        
+        setInterval(() => {
+            fetch('<?php echo BASE_URL; ?>api/check_updates.php?last_time=' + encodeURIComponent(lastNotifTime))
+            .then(r => r.json())
+            .then(data => {
+                if (data.has_updates) {
+                    lastNotifTime = data.last_time;
+
+                    // Fetch current page and softly update the DOM
+                    fetch(location.href)
+                    .then(res => res.text())
+                    .then(html => {
+                        let parser = new DOMParser();
+                        let doc = parser.parseFromString(html, 'text/html');
+
+                        // Update Notification Bell icon in Navigation
+                        let oldNav = document.querySelector('.navbar');
+                        let newNav = doc.querySelector('.navbar');
+                        if(oldNav && newNav) oldNav.innerHTML = newNav.innerHTML;
+
+                        // Identify if user is on Dashboard -> Notifications
+                        if(window.location.search.includes('tab=notifications') && document.title.includes('Dashboard')) {
+                            let oldMain = document.querySelector('main');
+                            let newMain = doc.querySelector('main');
+                            if(oldMain && newMain) oldMain.innerHTML = newMain.innerHTML;
+                        }
+                    }).catch(err => console.error("DOM Update Error:", err));
+                }
+            }).catch(e => console.error("Realtime Error:", e));
+        }, 5000);
+    </script>
+    <?php endif; ?>
 </body>
 </html>
 </body>
